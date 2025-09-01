@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宿舍管理系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding-bottom: 60px; /* 为页脚留出空间 */
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header-info {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .color-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #ecf0f1;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .tab:hover {
+            background: #d6dbdf;
+        }
+        
+        .tab.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        .floor-content {
+            display: none;
+            padding: 20px;
+        }
+        
+        .floor-content.active {
+            display: block;
+        }
+        
+        .floor-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .floor-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .room {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+        
+        .room:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .room-number {
+            font-weight: bold;
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .room-occupant {
+            font-size: 14px;
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            margin-bottom: 5px;
+        }
+        
+        .room-details {
+            font-size: 12px;
+            color: #666;
+            text-align: left;
+            padding: 5px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            margin-top: auto;
+        }
+        
+        .person-count {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #3498db;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .occupied {
+            border-color: #1565C0;
+            background: #E3F2FD;
+        }
+        
+        .hotel-staff {
+            border-color: #2E7D32;
+            background: #E8F5E9;
+        }
+        
+        .storage {
+            border-color: #EF6C00;
+            background: #FFF3E0;
+        }
+        
+        .vacant {
+            border-color: #9E9E9E;
+            background: #FAFAFA;
+            color: #9E9E9E;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #34495e;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+        
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 25px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-save {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-save:hover {
+            background: #2980b9;
+        }
+        
+        .btn-cancel {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-cancel:hover {
+            background: #c0392b;
+        }
+        
+        .search-box {
+            margin: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        
+        .btn-search {
+            background: #2c3e50;
+            color: white;
+            padding: 0 20px;
+        }
+        
+        .filter-box {
+            margin: 0 20px 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .filter-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .filter-select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            background: white;
+        }
+        
+        .search-highlight {
+            animation: highlight 1.5s ease;
+            border: 2px solid #ff5252;
+        }
+        
+        @keyframes highlight {
+            0% { background-color: #ff5252; color: white; }
+            70% { background-color: #ff5252; color: white; }
+            100% { background-color: inherit; color: inherit; }
+        }
+        
+        /* 页脚样式 */
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .company-info {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .copyright {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-align: right;
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+        }
+        
+        @media (max-width: 1024px) {
+            .rooms-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .rooms-grid {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            }
+            
+            .room {
+                height: 140px;
+                padding: 10px;
+            }
+            
+            .room-number {
+                font-size: 16px;
+            }
+            
+            .room-occupant {
+                font-size: 13px;
+            }
+            
+            .copyright {
+                position: static;
+                text-align: center;
+                margin-top: 20px;
+            }
+            
+            .floor-stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-building"></i> 宿舍管理系统</h1>
+            <div class="header-info">
+                <div class="info-item">
+                    <div class="color-box" style="background: #E3F2FD; border: 1px solid #1565C0;"></div>
+                    <span>已入住</span>
+                </div>
+                <div class="info-item">
+                    <div class="color-box" style="background: #FFF3E0; border: 1px solid #EF6C00;"></div>
+                    <span>库房</span>
+                </div>
+                <div class="info-item">
+                    <div class="color-box" style="background: #FAFAFA; border: 1px solid #9E9E9E;"></div>
+                    <span>空置</span>
+                </div>
+            </div>
+        </header>
+        
+        <div class="search-box">
+            <input type="text" class="search-input" id="searchInput" placeholder="搜索房间号、入住人或工作单位...">
+            <button class="btn-search" id="searchBtn"><i class="fas fa-search"></i> 搜索</button>
+        </div>
+        
+        <div class="filter-box">
+            <span class="filter-label">房间状态筛选:</span>
+            <select class="filter-select" id="roomFilter">
+                <option value="all">显示全部</option>
+                <option value="occupied">只看已入住</option>
+                <option value="vacant">只看空置</option>
+            </select>
+            <button class="btn-search" id="resetBtn"><i class="fas fa-sync-alt"></i> 重置数据</button>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" data-floor="1">一楼 (10间)</div>
+            <div class="tab" data-floor="2">二楼 (24间)</div>
+            <div class="tab" data-floor="3">三楼 (24间)</div>
+            <div class="tab" data-floor="4">四楼 (24间)</div>
+        </div>
+        
+        <div class="floor-content active" id="floor-1">
+            <div class="floor-title">
+                <i class="fas fa-layer-group"></i>
+                <span>一楼 - 10个房间</span>
+            </div>
+            <div class="floor-stats" id="stats-1">
+                <div class="stat-item">
+                    <div class="stat-value" id="occupied-1">0</div>
+                    <div class="stat-label">已入住</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="vacant-1">10</div>
+                    <div class="stat-label">空置</div>
+                </div>
+            </div>
+            <div class="rooms-grid" id="rooms-1">
+                <!-- 一楼的房间将由JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <div class="floor-content" id="floor-2">
+            <div class="floor-title">
+                <i class="fas fa-layer-group"></i>
+                <span>二楼 - 24个房间</span>
+            </div>
+            <div class="floor-stats" id="stats-2">
+                <div class="stat-item">
+                    <div class="stat-value" id="occupied-2">0</div>
+                    <div class="stat-label">已入住</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="vacant-2">24</div>
+                    <div class="stat-label">空置</div>
+                </div>
+            </div>
+            <div class="rooms-grid" id="rooms-2">
+                <!-- 二楼的房间将由JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <div class="floor-content" id="floor-3">
+            <div class="floor-title">
+                <i class="fas fa-layer-group"></i>
+                <span>三楼 - 24个房间</span>
+            </div>
+            <div class="floor-stats" id="stats-3">
+                <div class="stat-item">
+                    <div class="stat-value" id="occupied-3">0</div>
+                    <div class="stat-label">已入住</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="vacant-3">24</div>
+                    <div class="stat-label">空置</div>
+                </div>
+            </div>
+            <div class="rooms-grid" id="rooms-3">
+                <!-- 三楼的房间将由JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <div class="floor-content" id="floor-4">
+            <div class="floor-title">
+                <i class="fas fa-layer-group"></i>
+                <span>四楼 - 24个房间</span>
+            </div>
+            <div class="floor-stats" id="stats-4">
+                <div class="stat-item">
+                    <div class="stat-value" id="occupied-4">0</div>
+                    <div class="stat-label">已入住</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="vacant-4">24</div>
+                    <div class="stat-label">空置</div>
+                </div>
+            </div>
+            <div class="rooms-grid" id="rooms-4">
+                <!-- 四楼的房间将由JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 编辑房间信息的模态框 -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">编辑房间信息</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="roomForm">
+                <div class="form-group">
+                    <label for="roomNumber">房间号:</label>
+                    <input type="text" id="roomNumber" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="personCount">入住人数:</label>
+                    <input type="number" id="personCount" min="0" max="10" value="1">
+                </div>
+                <div class="form-group">
+                    <label for="roomOccupant">入住人员姓名:</label>
+                    <textarea id="roomOccupant" placeholder="输入入住人员姓名，多人用逗号分隔"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="workUnit">工作单位:</label>
+                    <input type="text" id="workUnit" placeholder="输入工作单位">
+                </div>
+                <div class="form-group">
+                    <label for="roomStatus">房间状态:</label>
+                    <select id="roomStatus">
+                        <option value="vacant">空置</option>
+                        <option value="occupied">已入住</option>
+                        <option value="storage">库房</option>
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button type="button" class="btn-cancel" id="cancelBtn">取消</button>
+                    <button type="button" class="btn-save" id="saveBtn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 页脚信息 -->
+    <div class="footer">
+        <div class="company-info">四川巴尔农牧集团有限公司</div>
+    </div>
+    
+    <div class="copyright">©2025 liwenjie</div>
+
+    <script>
+        // 默认房间数据 - 已删除酒店员工项，并将三楼全部改为空置房间
+        const defaultRoomData = {
+            "101": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "102": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "103": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "104": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "105": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "106": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "107": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "108": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "109": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "110": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            
+            "201": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "202": { occupant: "陈兴怀", personCount: 1, workUnit: "", status: "occupied" },
+            "203": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "204": { occupant: "古世明", personCount: 1, workUnit: "", status: "occupied" },
+            "205": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "206": { occupant: "荣德全, 周庆彬", personCount: 2, workUnit: "", status: "occupied" },
+            "207": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "208": { occupant: "罗小平", personCount: 1, workUnit: "", status: "occupied" },
+            "209": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "210": { occupant: "曹德富", personCount: 1, workUnit: "", status: "occupied" },
+            "211": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "212": { occupant: "欧光彬, 郝明", personCount: 2, workUnit: "", status: "occupied" },
+            "213": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "214": { occupant: "周法学, 胡荣贵", personCount: 2, workUnit: "", status: "occupied" },
+            "215": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "216": { occupant: "唐起荣, 龚照育", personCount: 2, workUnit: "", status: "occupied" },
+            "217": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "218": { occupant: "高小英, 温艳", personCount: 2, workUnit: "", status: "occupied" },
+            "219": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "220": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "221": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "222": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "223": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "224": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            
+            // 三楼全部改为空置房间
+            "301": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "302": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "303": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "304": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "305": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "306": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "307": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "308": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "309": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "310": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "311": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "312": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "313": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "314": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "315": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "316": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "317": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "318": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "319": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "320": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "321": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "322": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "323": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "324": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            
+            "401": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "402": { occupant: "谢旭英", personCount: 1, workUnit: "", status: "occupied" },
+            "403": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "404": { occupant: "胡莲芳", personCount: 1, workUnit: "", status: "occupied" },
+            "405": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "406": { occupant: "廖小树", personCount: 1, workUnit: "", status: "occupied" },
+            "407": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "408": { occupant: "舒馨", personCount: 1, workUnit: "", status: "occupied" },
+            "409": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "410": { occupant: "厨师长", personCount: 1, workUnit: "荣州大酒店", status: "occupied" },
+            "411": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "412": { occupant: "库房", personCount: 0, workUnit: "", status: "storage" },
+            "413": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "414": { occupant: "张强", personCount: 1, workUnit: "", status: "occupied" },
+            "415": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "416": { occupant: "陈林", personCount: 1, workUnit: "", status: "occupied" },
+            "417": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "418": { occupant: "王松", personCount: 1, workUnit: "", status: "occupied" },
+            "419": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "420": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "421": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "422": { occupant: "张孝忠", personCount: 1, workUnit: "", status: "occupied" },
+            "423": { occupant: "", personCount: 0, workUnit: "", status: "vacant" },
+            "424": { occupant: "杨俊", personCount: 1, workUnit: "", status: "occupied" }
+        };
+
+        // 当前编辑的房间
+        let currentEditingRoom = null;
+        let roomData = {};
+        let currentFilter = "all"; // 当前筛选状态
+
+        // 初始化页面
+        document.addEventListener("DOMContentLoaded", function() {
+            // 从本地存储加载数据或使用默认数据
+            loadRoomData();
+            
+            // 渲染所有楼层的房间
+            renderFloors();
+            
+            // 绑定选项卡事件
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // 移除所有active类
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.floor-content').forEach(f => f.classList.remove('active'));
+                    
+                    // 添加active类到当前选项卡
+                    tab.classList.add('active');
+                    const floorId = `floor-${tab.dataset.floor}`;
+                    document.getElementById(floorId).classList.add('active');
+                });
+            });
+            
+            // 绑定模态框事件
+            document.querySelector('.close-btn').addEventListener('click', closeModal);
+            document.getElementById('cancelBtn').addEventListener('click', closeModal);
+            document.getElementById('saveBtn').addEventListener('click', saveRoomInfo);
+            
+            // 绑定搜索功能
+            document.getElementById('searchBtn').addEventListener('click', searchRooms);
+            document.getElementById('searchInput').addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    searchRooms();
+                }
+            });
+
+            // 绑定筛选功能
+            document.getElementById('roomFilter').addEventListener('change', function() {
+                currentFilter = this.value;
+                renderFloors();
+            });
+
+            // 添加重置数据按钮事件
+            document.getElementById('resetBtn').addEventListener('click', resetData);
+        });
+
+        // 从本地存储加载数据
+        function loadRoomData() {
+            const savedData = localStorage.getItem('dormitoryRoomData');
+            if (savedData) {
+                roomData = JSON.parse(savedData);
+                console.log("已从本地存储加载数据");
+            } else {
+                // 使用默认数据
+                roomData = JSON.parse(JSON.stringify(defaultRoomData));
+                console.log("使用默认数据");
+            }
+        }
+
+        // 保存数据到本地存储
+        function saveRoomData() {
+            localStorage.setItem('dormitoryRoomData', JSON.stringify(roomData));
+            console.log("数据已保存到本地存储");
+        }
+
+        // 渲染所有楼层的房间
+        function renderFloors() {
+            for (let floor = 1; floor <= 4; floor++) {
+                const floorElement = document.querySelector(`#floor-${floor} .rooms-grid`);
+                floorElement.innerHTML = ""; // 清空容器
+                
+                // 获取当前楼层的所有房间号
+                const roomNumbers = Object.keys(roomData).filter(num => num.startsWith(floor));
+                
+                // 统计已入住和空置房间数量
+                let occupiedCount = 0;
+                let vacantCount = 0;
+                
+                roomNumbers.forEach(roomNumber => {
+                    const room = roomData[roomNumber];
+                    
+                    // 更新统计
+                    if (room.status === "occupied") {
+                        occupiedCount++;
+                    } else if (room.status === "vacant") {
+                        vacantCount++;
+                    }
+                    
+                    // 根据筛选条件决定是否显示房间
+                    if (currentFilter === "all" || 
+                        (currentFilter === "occupied" && room.status === "occupied") ||
+                        (currentFilter === "vacant" && room.status === "vacant")) {
+                        
+                        const roomElement = document.createElement("div");
+                        roomElement.className = `room ${room.status}`;
+                        roomElement.dataset.room = roomNumber;
+                        
+                        const numberElement = document.createElement("div");
+                        numberElement.className = "room-number";
+                        numberElement.textContent = roomNumber;
+                        
+                        const occupantElement = document.createElement("div");
+                        occupantElement.className = "room-occupant";
+                        occupantElement.textContent = room.occupant || "空置";
+                        
+                        const detailsElement = document.createElement("div");
+                        detailsElement.className = "room-details";
+                        detailsElement.textContent = room.workUnit || "暂无单位信息";
+                        
+                        roomElement.appendChild(numberElement);
+                        
+                        // 添加入住人数标识
+                        if (room.personCount > 0) {
+                            const countElement = document.createElement("div");
+                            countElement.className = "person-count";
+                            countElement.textContent = room.personCount;
+                            roomElement.appendChild(countElement);
+                        }
+                        
+                        roomElement.appendChild(occupantElement);
+                        roomElement.appendChild(detailsElement);
+                        
+                        // 添加点击事件
+                        roomElement.addEventListener('click', () => editRoom(roomNumber));
+                        
+                        floorElement.appendChild(roomElement);
+                    }
+                });
+                
+                // 更新楼层统计信息
+                document.getElementById(`occupied-${floor}`).textContent = occupiedCount;
+                document.getElementById(`vacant-${floor}`).textContent = vacantCount;
+            }
+        }
+
+        // 编辑房间信息
+        function editRoom(roomNumber) {
+            const room = roomData[roomNumber];
+            if (!room) return;
+            
+            currentEditingRoom = roomNumber;
+            
+            // 填充模态框表单
+            document.getElementById("roomNumber").value = roomNumber;
+            document.getElementById("personCount").value = room.personCount;
+            document.getElementById("roomOccupant").value = room.occupant;
+            document.getElementById("workUnit").value = room.workUnit;
+            document.getElementById("roomStatus").value = room.status;
+            
+            // 显示模态框
+            document.getElementById("editModal").style.display = "flex";
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById("editModal").style.display = "none";
+            currentEditingRoom = null;
+        }
+
+        // 保存房间信息
+        function saveRoomInfo() {
+            if (!currentEditingRoom) return;
+            
+            // 更新房间数据
+            roomData[currentEditingRoom].personCount = parseInt(document.getElementById("personCount").value) || 0;
+            roomData[currentEditingRoom].occupant = document.getElementById("roomOccupant").value;
+            roomData[currentEditingRoom].workUnit = document.getElementById("workUnit").value;
+            roomData[currentEditingRoom].status = document.getElementById("roomStatus").value;
+            
+            // 保存到本地存储
+            saveRoomData();
+            
+            // 重新渲染受影响的楼层
+            renderFloors();
+            
+            // 关闭模态框
+            closeModal();
+        }
+
+        // 搜索房间
+        function searchRooms() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (!searchTerm) return;
+            
+            // 清除之前的高亮
+            document.querySelectorAll('.search-highlight').forEach(el => {
+                el.classList.remove('search-highlight');
+            });
+            
+            let found = false;
+            
+            // 在所有房间中搜索
+            for (const roomNumber in roomData) {
+                const room = roomData[roomNumber];
+                if (roomNumber.includes(searchTerm) || 
+                    room.occupant.toLowerCase().includes(searchTerm) ||
+                    room.workUnit.toLowerCase().includes(searchTerm)) {
+                    
+                    // 找到匹配项
+                    const roomElement = document.querySelector(`.room[data-room="${roomNumber}"]`);
+                    if (roomElement) {
+                        roomElement.classList.add('search-highlight');
+                        
+                        // 切换到对应的楼层
+                        const floor = roomNumber.substring(0, 1);
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.floor-content').forEach(f => f.classList.remove('active'));
+                        
+                        document.querySelector(`.tab[data-floor="${floor}"]`).classList.add('active');
+                        document.getElementById(`floor-${floor}`).classList.add('active');
+                        
+                        found = true;
+                    }
+                }
+            }
+            
+            if (!found) {
+                alert("未找到匹配的房间、入住人或工作单位");
+            }
+        }
+
+        // 重置数据
+        function resetData() {
+            if (confirm("确定要重置所有数据吗？这将清除所有已保存的修改！")) {
+                localStorage.removeItem('dormitoryRoomData');
+                roomData = JSON.parse(JSON.stringify(defaultRoomData));
+                saveRoomData();
+                renderFloors();
+                alert("数据已重置为初始状态");
+            }
+        }
+
+        // 点击模态框外部关闭
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
